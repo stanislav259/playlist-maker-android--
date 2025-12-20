@@ -1,4 +1,4 @@
-package com.example.playlistmaker
+package com.example.playlistmaker.ui.activity
 
 import android.content.Context
 import android.content.Intent
@@ -38,6 +38,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.playlistmaker.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,19 +74,19 @@ fun SettingsScreen(onBackClick: () -> Unit) {
                 text = stringResource(id = R.string.settings_dark_theme),
                 action = { SettingsSwitch() }
             )
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(35.dp))
             SettingsItem(
                 text = stringResource(id = R.string.settings_share_app),
                 action = { SettingsIcon(Icons.Filled.Share) },
                 onClick = { shareApp(context) }
             )
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(35.dp))
             SettingsItem(
                 text = stringResource(id = R.string.settings_write_to_support),
                 action = { SettingsIcon(Icons.Outlined.SupportAgent) },
                 onClick = { writeToSupport(context) }
             )
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(35.dp))
             SettingsItem(
                 text = stringResource(id = R.string.settings_user_agreement),
                 action = { SettingsIcon(Icons.Default.ArrowForwardIos) },
@@ -120,6 +121,7 @@ private fun SettingsItem(
 private fun SettingsSwitch() {
     val isChecked = remember { mutableStateOf(false) }
     Switch(
+        modifier = Modifier.height(1.dp),
         checked = isChecked.value,
         onCheckedChange = { isChecked.value = it },
         colors = SwitchDefaults.colors(

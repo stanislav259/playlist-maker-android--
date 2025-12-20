@@ -1,8 +1,9 @@
-package com.example.playlistmaker
+package com.example.playlistmaker.ui.activity
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -36,11 +37,16 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.playlistmaker.SearchViewModel
 import com.example.playlistmaker.navigation.PlaylistHost
 import com.example.playlistmaker.ui.theme.PlaylistMakerTheme
 
 class MainActivity : ComponentActivity() {
+    private val searchViewModel by viewModels<SearchViewModel>{
+        SearchViewModel.getViewModelFactory()
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
         setContent {
             PlaylistMakerTheme {
@@ -92,8 +98,11 @@ fun MainScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 MenuItem(text = "Поиск", icon = Icons.Default.Search, onClick = onSearchClick)
+                Spacer(modifier = Modifier.height(10.dp))
                 MenuItem(text = "Плейлисты", icon = Icons.Outlined.LibraryMusic, onClick = onPlaylistsClick)
+                Spacer(modifier = Modifier.height(10.dp))
                 MenuItem(text = "Избранное", icon = Icons.Default.Favorite, onClick = onFavoritesClick)
+                Spacer(modifier = Modifier.height(10.dp))
                 MenuItem(text = "Настройки", icon = Icons.Outlined.Settings, onClick = onSettingsClick)
             }
         }
