@@ -12,15 +12,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -30,7 +30,6 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,7 +45,6 @@ import com.example.playlistmaker.R
 import com.example.playlistmaker.SearchState
 import com.example.playlistmaker.SearchViewModel
 import com.example.playlistmaker.data.network.Track
-import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,24 +55,13 @@ fun SearchScreen(
     val screenState by viewModel.searchScreenState.collectAsState()
     var searchText by remember { mutableStateOf("") }
 
-    // Для отсрочки поиска (debounce)
-    LaunchedEffect(searchText) {
-        if (searchText.isNotEmpty()) {
-            delay(2000) // Ждем 2 секунды после последнего ввода
-            viewModel.search(searchText)
-        } else {
-            // Если текст очищен, сбрасываем состояние
-            // Нужно добавить метод clearSearch() в ViewModel
-        }
-    }
-
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Поиск", fontWeight = FontWeight.Medium) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = "Назад")
+                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -93,6 +80,7 @@ fun SearchScreen(
                 .padding(horizontal = 16.dp)
         ) {
             Spacer(modifier = Modifier.height(16.dp))
+
             OutlinedTextField(
                 value = searchText,
                 onValueChange = { searchText = it },
@@ -114,8 +102,7 @@ fun SearchScreen(
                     if (searchText.isNotEmpty()) {
                         IconButton(onClick = {
                             searchText = ""
-                            // Сброс состояния поиска
-                            // viewModel.clearSearch() // если добавите метод в ViewModel
+                            viewModel.clearSearch()
                         }) {
                             Icon(Icons.Filled.Clear, contentDescription = "Очистить")
                         }
@@ -127,7 +114,10 @@ fun SearchScreen(
                     focusedContainerColor = Color(0xFFE6E8EB),
                     unfocusedContainerColor = Color(0xFFE6E8EB),
                     focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
+                    unfocusedIndicatorColor = Color.Transparent,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black,
+                    cursorColor = Color.Black
                 )
             )
 
@@ -141,7 +131,8 @@ fun SearchScreen(
                             .weight(1f),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("Введите строку для поиска")
+                        Text("Введите строку для поиска",
+                            color = Color.Black)
                     }
                 }
 
@@ -173,15 +164,12 @@ fun SearchScreen(
                                 .fillMaxSize()
                                 .weight(1f)
                         ) {
-                            itemsIndexed(tracks) { index, track ->
+                            items(tracks) { track ->
                                 TrackListItem(track = track)
-                                if (index < tracks.size - 1) {
-                                    Divider(
-                                        thickness = 0.5.dp,
-                                        color = Color.LightGray,
-                                        modifier = Modifier.padding(vertical = 8.dp)
-                                    )
-                                }
+                                HorizontalDivider(
+                                    thickness = 0.5.dp,
+                                    color = Color.LightGray
+                                )
                             }
                         }
                     }
@@ -208,7 +196,7 @@ fun TrackListItem(track: Track) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .padding(vertical = 8.dp, horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {

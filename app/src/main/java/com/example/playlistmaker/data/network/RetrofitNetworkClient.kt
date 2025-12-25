@@ -7,8 +7,8 @@ import com.example.playlistmaker.domain.NetworkClient
 
 class RetrofitNetworkClient(private val storage: Storage) : NetworkClient {
 
-    override fun doRequest(request: Any): TracksSearchResponse {
-        val searchList = storage.search((request as TracksSearchRequest).expression)
+    override fun doRequest(dto: Any): TracksSearchResponse {
+        val searchList = storage.search((dto as TracksSearchRequest).expression)
         return TracksSearchResponse(searchList).apply { resultCode = 200 }
     }
 }

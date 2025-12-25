@@ -1,15 +1,12 @@
-package com.example.playlistmaker.navigation
+package com.example.playlistmaker.ui.activity
 
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.playlistmaker.ui.activity.MainScreen
 import com.example.playlistmaker.Screen
 import com.example.playlistmaker.SearchViewModel
-import com.example.playlistmaker.ui.activity.SearchScreen
-import com.example.playlistmaker.ui.activity.SettingsScreen
 
 @Composable
 fun PlaylistHost() {

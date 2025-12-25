@@ -2,7 +2,6 @@ package com.example.playlistmaker.ui.activity
 
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -13,8 +12,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForwardIos
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.SupportAgent
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -38,6 +37,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import com.example.playlistmaker.R
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,7 +51,7 @@ fun SettingsScreen(onBackClick: () -> Unit) {
                 title = { Text(stringResource(id = R.string.settings), fontWeight = FontWeight.Medium) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = "Назад")
+                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -89,7 +89,7 @@ fun SettingsScreen(onBackClick: () -> Unit) {
             Spacer(modifier = Modifier.height(35.dp))
             SettingsItem(
                 text = stringResource(id = R.string.settings_user_agreement),
-                action = { SettingsIcon(Icons.Default.ArrowForwardIos) },
+                action = { SettingsIcon(Icons.AutoMirrored.Filled.ArrowForwardIos) },
                 onClick = { openUserAgreement(context) }
             )
         }
@@ -111,7 +111,9 @@ private fun SettingsItem(
         Text(
             text = text,
             fontSize = 16.sp,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
+            color = Color.Black
+
         )
         action()
     }
@@ -154,23 +156,23 @@ private fun shareApp(context: Context) {
 
 private fun writeToSupport(context: Context) {
     val intent = Intent(Intent.ACTION_SENDTO).apply {
-        data = Uri.parse("mailto:")
+        data = "mailto:".toUri()
         putExtra(Intent.EXTRA_EMAIL, arrayOf(context.getString(R.string.developer_email)))
         putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.support_email_subject))
         putExtra(Intent.EXTRA_TEXT, context.getString(R.string.support_email_body))
     }
     try {
         context.startActivity(intent)
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         // Обработка случая, если почтовый клиент не найден
     }
 }
 
 private fun openUserAgreement(context: Context) {
-    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(context.getString(R.string.offer_url)))
+    val intent = Intent(Intent.ACTION_VIEW, context.getString(R.string.offer_url).toUri())
     try {
         context.startActivity(intent)
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         // Обработка случая, если браузер не найден
     }
 }
