@@ -50,6 +50,7 @@ import com.example.playlistmaker.data.network.Track
 @Composable
 fun SearchScreen(
     onBackClick: () -> Unit,
+    onTrackClick: (Track) -> Unit,
     viewModel: SearchViewModel
 ) {
     val screenState by viewModel.searchScreenState.collectAsState()
@@ -165,7 +166,9 @@ fun SearchScreen(
                                 .weight(1f)
                         ) {
                             items(tracks) { track ->
-                                TrackListItem(track = track)
+                                TrackListItem(track = track) {
+                                    onTrackClick(track)
+                                }
                                 HorizontalDivider(
                                     thickness = 0.5.dp,
                                     color = Color.LightGray
@@ -192,10 +195,11 @@ fun SearchScreen(
 }
 
 @Composable
-fun TrackListItem(track: Track) {
+fun TrackListItem(track: Track, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable(onClick = onClick)
             .padding(vertical = 8.dp, horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
