@@ -14,9 +14,8 @@ fun PlaylistHost() {
     val navigateBack: () -> Unit = { navController.popBackStack() }
     val navigateToSearch = { navController.navigate(Screen.Search.route) }
     val navigateToSettings = { navController.navigate(Screen.Settings.route) }
-    val navigateToPlaylists = { /* пока ничего */ }
-    val navigateToFavorites = { /* пока ничего */ }
-
+    val navigateToPlaylists = { navController.navigate(Screen.Playlists.route) }
+    val navigateToFavorites = { navController.navigate(Screen.Favorites.route) }
 
     NavHost(
         navController = navController,
@@ -30,21 +29,33 @@ fun PlaylistHost() {
                 onSettingsClick = navigateToSettings
             )
         }
+
         composable(Screen.Search.route) {
-            // Создаем ViewModel для экрана поиска
             val searchViewModel: SearchViewModel = viewModel(
                 factory = SearchViewModel.getViewModelFactory()
             )
-
             SearchScreen(
                 onBackClick = navigateBack,
-                viewModel = searchViewModel  // Передаем ViewModel
+                viewModel = searchViewModel
             )
         }
 
-
         composable(Screen.Settings.route) {
             SettingsScreen(
+                onBackClick = navigateBack
+            )
+        }
+
+        // Маршрут для экрана Плейлистов
+        composable(Screen.Playlists.route) {
+            PlaylistsScreen(
+                onBackClick = navigateBack
+            )
+        }
+
+        // Маршрут для экрана Избранного
+        composable(Screen.Favorites.route) {
+            FavoritesScreen(
                 onBackClick = navigateBack
             )
         }
