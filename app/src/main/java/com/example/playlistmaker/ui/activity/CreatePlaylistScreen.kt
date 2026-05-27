@@ -1,12 +1,12 @@
 package com.example.playlistmaker.ui.activity
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -31,7 +32,9 @@ import androidx.core.content.ContextCompat
 import coil.compose.AsyncImage
 import com.example.playlistmaker.R
 import com.example.playlistmaker.PlaylistsViewModel
-import com.example.playlistmaker.data.ThemeManager  
+import com.example.playlistmaker.data.ThemeManager
+import java.io.File
+import java.io.FileOutputStream
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,8 +52,11 @@ fun CreatePlaylistScreen(
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        uri?.let {
-            viewModel.setCoverImageUri(it.toString())
+        uri?.let { selectedUri ->
+            val localUri = saveImageToInternalStorage(context, selectedUri)
+            if (localUri != null) {
+                viewModel.setCoverImageUri(localUri.toString())
+            }
         }
     }
 
@@ -77,13 +83,14 @@ fun CreatePlaylistScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Назад",
-                            tint = ThemeManager.AppTextColor  
+                            tint = ThemeManager.AppTextColor
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = ThemeManager.AppBackgroundColor,  
-                    titleContentColor = ThemeManager.AppTextColor  
+                    containerColor = ThemeManager.AppBackgroundColor,
+                    titleContentColor = ThemeManager.AppTextColor,
+                    navigationIconContentColor = ThemeManager.AppTextColor
                 )
             )
         }
@@ -91,7 +98,7 @@ fun CreatePlaylistScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(ThemeManager.AppBackgroundColor)  
+                .background(ThemeManager.AppBackgroundColor)
                 .padding(padding)
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState()),
@@ -105,7 +112,7 @@ fun CreatePlaylistScreen(
                     .aspectRatio(1f)
                     .padding(horizontal = 8.dp)
                     .clip(RoundedCornerShape(16.dp))
-                    .background(ThemeManager.AppCardColor)  
+                    .background(ThemeManager.AppCardColor)
                     .clickable {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                             imagePickerLauncher.launch("image/*")
@@ -126,14 +133,14 @@ fun CreatePlaylistScreen(
                 if (coverImageUri != null) {
                     AsyncImage(
                         model = Uri.parse(coverImageUri),
-                        contentDescription = "Обложка",
+                        contentDescription = stringResource(id = R.string.playlist_cover),
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
                 } else {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_music),
-                        contentDescription = "Добавить",
+                        contentDescription = stringResource(id = R.string.add_cover),
                         modifier = Modifier.size(64.dp),
                         tint = Color(0xFFAEAFB4)
                     )
@@ -154,8 +161,8 @@ fun CreatePlaylistScreen(
                     unfocusedBorderColor = Color(0xFFAEAFB4),
                     focusedLabelColor = Color(0xFF3772E7),
                     unfocusedLabelColor = Color(0xFFAEAFB4),
-                    focusedTextColor = ThemeManager.AppTextColor,  
-                    unfocusedTextColor = ThemeManager.AppTextColor  
+                    focusedTextColor = ThemeManager.AppTextColor,
+                    unfocusedTextColor = ThemeManager.AppTextColor
                 )
             )
 
@@ -172,8 +179,8 @@ fun CreatePlaylistScreen(
                     unfocusedBorderColor = Color(0xFFAEAFB4),
                     focusedLabelColor = Color(0xFF3772E7),
                     unfocusedLabelColor = Color(0xFFAEAFB4),
-                    focusedTextColor = ThemeManager.AppTextColor,  
-                    unfocusedTextColor = ThemeManager.AppTextColor  
+                    focusedTextColor = ThemeManager.AppTextColor,
+                    unfocusedTextColor = ThemeManager.AppTextColor
                 )
             )
 
@@ -197,9 +204,32 @@ fun CreatePlaylistScreen(
                     disabledContentColor = Color.White
                 )
             ) {
-                Text("Создать", fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                Text(
+                    text = "Создать",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium
+                )
             }
             Spacer(modifier = Modifier.height(16.dp))
         }
+    }
+}
+
+private fun saveImageToInternalStorage(context: Context, uri: Uri): Uri? {
+    return try {
+        val inputStream = context.contentResolver.openInputStream(uri) ?: return null
+        val fileName = "playlist_cover_${System.currentTimeMillis()}.jpg"
+        val file = File(context.filesDir, fileName)
+        val outputStream = FileOutputStream(file)
+
+        inputStream.use { input ->
+            outputStream.use { output ->
+                input.copyTo(output)
+            }
+        }
+        Uri.fromFile(file)
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
     }
 }

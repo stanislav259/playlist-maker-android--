@@ -8,24 +8,25 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class RetrofitNetworkClient : NetworkClient {
 
-    private val baseUrl = "https://itunes.apple.com"
-
-    private val retrofit = Retrofit.Builder()
-        .baseUrl(baseUrl)
-        .addConverterFactory(GsonConverterFactory.create())
-        .build()
-
-    private val iTunesService = retrofit.create(ITunesSearchApi::class.java)
-
     override suspend fun doRequest(dto: Any): BaseResponse {
         if (dto !is TracksSearchRequest) {
             return BaseResponse().apply { resultCode = 400 }
         }
         return try {
+            val retrofit = Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
+
+            val iTunesService = retrofit.create(ITunesSearchApi::class.java)
             val response = iTunesService.search(dto.expression)
             response.apply { resultCode = 200 }
         } catch (e: Exception) {
-            BaseResponse().apply { resultCode = -1 } // Код ошибки сети
+            BaseResponse().apply { resultCode = -1 }
         }
+    }
+
+    companion object {
+        private const val BASE_URL = "https://itunes.apple.com"
     }
 }
