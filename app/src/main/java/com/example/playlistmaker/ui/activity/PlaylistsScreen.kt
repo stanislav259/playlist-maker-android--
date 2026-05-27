@@ -1,5 +1,6 @@
 package com.example.playlistmaker.ui.activity
 
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -24,6 +25,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.playlistmaker.R
 import com.example.playlistmaker.Playlist
 import com.example.playlistmaker.PlaylistsViewModel
@@ -48,16 +50,30 @@ fun PlaylistListItem(playlist: Playlist, onClick: () -> Unit) {
             .padding(vertical = 10.dp, horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Image(
-            modifier = Modifier
-                .size(45.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .background(Color(0xFFE6E8EB)),
-            painter = painterResource(id = R.drawable.ic_music),
-            contentDescription = playlist.name,
-            contentScale = ContentScale.Inside,
-            colorFilter = ColorFilter.tint(Color(0xFFAEAFB4))
-        )
+        if (playlist.coverImageUri != null) {
+            // ИСПРАВЛЕНО: отображаем обложку пользователя
+            AsyncImage(
+                model = Uri.parse(playlist.coverImageUri),
+                contentDescription = playlist.name,
+                modifier = Modifier
+                    .size(45.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color(0xFFE6E8EB)),
+                contentScale = ContentScale.Crop
+            )
+        } else {
+            // Плейсхолдер
+            Image(
+                modifier = Modifier
+                    .size(45.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color(0xFFE6E8EB)),
+                painter = painterResource(id = R.drawable.ic_music),
+                contentDescription = playlist.name,
+                contentScale = ContentScale.Inside,
+                colorFilter = ColorFilter.tint(Color(0xFFAEAFB4))
+            )
+        }
 
         Spacer(modifier = Modifier.width(16.dp))
 

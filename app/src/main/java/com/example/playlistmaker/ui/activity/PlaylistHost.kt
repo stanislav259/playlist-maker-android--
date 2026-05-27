@@ -101,7 +101,14 @@ fun PlaylistHost() {
         // 6. Экран избранного (FavoritesScreen)
         composable(Screen.Favorites.route) {
             FavoritesScreen(
-                onBackClick = navigateBack
+                onBackClick = navigateBack,
+                onTrackClick = { track ->
+                    // Переход на детальный экран трека при клике
+                    navController.navigate(
+                        Screen.TrackDetails.createRoute(track.trackName, track.artistName)
+                    )
+                },
+                viewModel = playlistsViewModel // Передаем общую ViewModel плейлистов
             )
         }
 

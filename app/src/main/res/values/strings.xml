@@ -18,4 +18,6 @@
     <string name="support_email_body">Спасибо разработчикам за крутое приложение!</string>
     <string name="share_link">https://practicum.yandex.ru/android-developer/</string>
     <string name="offer_url">https://yandex.ru/legal/praktikum_offer/</string>
+    <string name="playlist_cover">Обложка плейлиста</string>
+    <string name="add_cover">Выбрать изображение обложки</string>
 </resources>

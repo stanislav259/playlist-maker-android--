@@ -1,6 +1,14 @@
 package com.example.playlistmaker.ui.activity
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,10 +21,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import coil.compose.AsyncImage
 import com.example.playlistmaker.R
 import com.example.playlistmaker.PlaylistsViewModel
 
@@ -28,7 +40,28 @@ fun CreatePlaylistScreen(
 ) {
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
+
+    val coverImageUri by viewModel.coverImageUri.collectAsState()
+    val context = LocalContext.current
     val isButtonEnabled = name.isNotBlank()
+
+    // Лаунчер выбора изображения из галереи
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            viewModel.setCoverImageUri(it.toString())
+        }
+    }
+
+    // Лаунчер для запроса runtime разрешения доступа к файлам (для API <= 32)
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            imagePickerLauncher.launch("image/*")
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -68,21 +101,50 @@ fun CreatePlaylistScreen(
         ) {
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Кликом на этот Box мы запускаем проверку разрешений и выбор картинки
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1f)
                     .padding(horizontal = 8.dp)
                     .clip(RoundedCornerShape(16.dp))
-                    .background(Color(0xFFE6E8EB)),
+                    .background(Color(0xFFE6E8EB))
+                    .clickable {
+                        // Для Android 13+ разрешения на чтение галереи не требуются
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            imagePickerLauncher.launch("image/*")
+                        } else {
+                            // Для Android 12 и ниже запрашиваем READ_EXTERNAL_STORAGE
+                            val permissionCheck = ContextCompat.checkSelfPermission(
+                                context,
+                                Manifest.permission.READ_EXTERNAL_STORAGE
+                            )
+                            if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
+                                imagePickerLauncher.launch("image/*")
+                            } else {
+                                permissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                            }
+                        }
+                    },
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_music),
-                    contentDescription = "Добавить обложку",
-                    modifier = Modifier.size(64.dp),
-                    tint = Color(0xFFAEAFB4)
-                )
+                if (coverImageUri != null) {
+                    // Отображение выбранной обложки пользователя
+                    AsyncImage(
+                        model = Uri.parse(coverImageUri),
+                        contentDescription = "Обложка плейлиста",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    // Плейсхолдер
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_music),
+                        contentDescription = "Добавить обложку",
+                        modifier = Modifier.size(64.dp),
+                        tint = Color(0xFFAEAFB4)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(32.dp))

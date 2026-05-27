@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.asStateFlow
 
 
 class PlaylistsViewModel(
@@ -28,11 +29,23 @@ class PlaylistsViewModel(
         }
     }
 
-    val favoriteList: Flow<List<Track>> = databaseRepository.getFavoriteTracks()
+    val favoriteList: Flow<List<Track>> = tracksRepository.getFavoriteTracks()
+
+    private val _coverImageUri = kotlinx.coroutines.flow.MutableStateFlow<String?>(null)
+    val coverImageUri = _coverImageUri.asStateFlow()
+
+    fun setCoverImageUri(uri: String?) {
+        _coverImageUri.value = uri
+    }
 
     fun createNewPlayList(namePlaylist: String, description: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            playlistsRepository.addNewPlaylist(namePlaylist, description)
+            playlistsRepository.addNewPlaylist(
+                name = namePlaylist,
+                description = description,
+                coverImageUri = _coverImageUri.value // Сохраняем выбранную обложку
+            )
+            _coverImageUri.value = null // Сбрасываем выбранную обложку после сохранения
         }
     }
 

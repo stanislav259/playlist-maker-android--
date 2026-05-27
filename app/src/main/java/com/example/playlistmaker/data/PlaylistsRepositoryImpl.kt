@@ -8,7 +8,6 @@ import com.example.playlistmaker.domain.PlaylistsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
 
 class PlaylistsRepositoryImpl(
     private val database: AppDatabase
@@ -24,6 +23,7 @@ class PlaylistsRepositoryImpl(
                     id = playlistEntity.id,
                     name = playlistEntity.name,
                     description = playlistEntity.description,
+                    coverImageUri = playlistEntity.coverImageUri, // Передаем обложку
                     tracks = trackEntities.map { entity ->
                         Track(
                             id = entity.id,
@@ -50,6 +50,7 @@ class PlaylistsRepositoryImpl(
                     id = entity.id,
                     name = entity.name,
                     description = entity.description,
+                    coverImageUri = entity.coverImageUri,
                     tracks = trackEntities.map { trackEntity ->
                         Track(
                             id = trackEntity.id,
@@ -67,11 +68,12 @@ class PlaylistsRepositoryImpl(
         }
     }
 
-    override suspend fun addNewPlaylist(name: String, description: String) {
+    override suspend fun addNewPlaylist(name: String, description: String, coverImageUri: String?) {
         playlistDao.insertPlaylist(
             PlaylistEntity(
                 name = name,
-                description = description
+                description = description,
+                coverImageUri = coverImageUri // Сохраняем обложку
             )
         )
     }

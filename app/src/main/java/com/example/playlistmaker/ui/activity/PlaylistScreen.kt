@@ -23,9 +23,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.playlistmaker.R
 import com.example.playlistmaker.PlaylistViewModel
 import com.example.playlistmaker.data.network.Track
+import android.net.Uri
+import androidx.compose.ui.layout.ContentScale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,12 +76,23 @@ fun PlaylistScreen(
                         .background(Color(0xFFE6E8EB)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_music),
-                        contentDescription = "Обложка плейлиста",
-                        modifier = Modifier.size(80.dp),
-                        colorFilter = ColorFilter.tint(Color.LightGray)
-                    )
+                    if (playlist.coverImageUri != null) {
+                        // ИСПРАВЛЕНО: отображаем крупную обложку пользователя
+                        AsyncImage(
+                            model = Uri.parse(playlist.coverImageUri),
+                            contentDescription = "Обложка плейлиста",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        // Плейсхолдер
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_music),
+                            contentDescription = "Обложка плейлиста",
+                            modifier = Modifier.size(80.dp),
+                            colorFilter = ColorFilter.tint(Color.LightGray)
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
