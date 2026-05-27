@@ -11,11 +11,14 @@ sealed class Screen(val route: String) {
     object Favorites : Screen("favorites_screen")
     object CreatePlaylist : Screen("create_playlist_screen")
 
-    object TrackDetails : Screen("track_details_screen/{trackName}/{artistName}") {
-        fun createRoute(trackName: String, artistName: String): String {
+    object TrackDetails : Screen("track_details_screen/{trackName}/{artistName}/{trackTime}/{artworkUrl100}") {
+        fun createRoute(trackName: String, artistName: String, trackTime: String, artworkUrl100: String): String {
             val encodedTrack = URLEncoder.encode(trackName, StandardCharsets.UTF_8.toString())
             val encodedArtist = URLEncoder.encode(artistName, StandardCharsets.UTF_8.toString())
-            return "track_details_screen/$encodedTrack/$encodedArtist"
+            val encodedTime = URLEncoder.encode(trackTime, StandardCharsets.UTF_8.toString())
+            val imageUrl = artworkUrl100.ifEmpty { "empty" }
+            val encodedUrl = URLEncoder.encode(imageUrl, StandardCharsets.UTF_8.toString())
+            return "track_details_screen/$encodedTrack/$encodedArtist/$encodedTime/$encodedUrl"
         }
     }
     object PlaylistDetails : Screen("playlist_details_screen/{playlistId}") {

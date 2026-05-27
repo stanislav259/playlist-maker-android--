@@ -1,9 +1,11 @@
 package com.example.playlistmaker.ui.activity
 
-import android.net.Uri
+import android.widget.Toast
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -12,15 +14,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -29,6 +30,7 @@ import coil.compose.AsyncImage
 import com.example.playlistmaker.R
 import com.example.playlistmaker.Playlist
 import com.example.playlistmaker.PlaylistsViewModel
+import com.example.playlistmaker.data.ThemeManager  
 
 private fun getTrackCountString(count: Int): String {
     val lastDigit = count % 10
@@ -41,33 +43,39 @@ private fun getTrackCountString(count: Int): String {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun PlaylistListItem(playlist: Playlist, onClick: () -> Unit) {
+fun PlaylistListItem(
+    playlist: Playlist,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick
+            )
             .padding(vertical = 10.dp, horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (playlist.coverImageUri != null) {
-            // ИСПРАВЛЕНО: отображаем обложку пользователя
             AsyncImage(
-                model = Uri.parse(playlist.coverImageUri),
+                model = android.net.Uri.parse(playlist.coverImageUri),
                 contentDescription = playlist.name,
                 modifier = Modifier
                     .size(45.dp)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(Color(0xFFE6E8EB)),
+                    .background(ThemeManager.AppCardColor),  
                 contentScale = ContentScale.Crop
             )
         } else {
-            // Плейсхолдер
             Image(
                 modifier = Modifier
                     .size(45.dp)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(Color(0xFFE6E8EB)),
+                    .background(ThemeManager.AppCardColor),  
                 painter = painterResource(id = R.drawable.ic_music),
                 contentDescription = playlist.name,
                 contentScale = ContentScale.Inside,
@@ -85,7 +93,7 @@ fun PlaylistListItem(playlist: Playlist, onClick: () -> Unit) {
                 text = playlist.name,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Normal,
-                color = Color.Black
+                color = ThemeManager.AppTextColor  
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
@@ -107,6 +115,12 @@ fun PlaylistsScreen(
     navigateBack: () -> Unit
 ) {
     val playlists by playlistsViewModel.playlists.collectAsState(emptyList())
+    val context = LocalContext.current
+
+    var selectedSourcePlaylist by remember { mutableStateOf<Playlist?>(null) }
+    var targetPlaylistToMerge by remember { mutableStateOf<Playlist?>(null) }
+    var showMergeBottomSheet by remember { mutableStateOf(false) }
+    var showConfirmationDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -123,39 +137,32 @@ fun PlaylistsScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Назад",
-                            tint = Color.Black
+                            tint = ThemeManager.AppTextColor  
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White,
-                    titleContentColor = Color.Black,
-                    navigationIconContentColor = Color.Black
+                    containerColor = ThemeManager.AppBackgroundColor,  
+                    titleContentColor = ThemeManager.AppTextColor  
                 )
             )
         },
         floatingActionButton = {
             FloatingActionButton(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .size(56.dp),
+                modifier = Modifier.padding(16.dp).size(56.dp),
                 onClick = { addNewPlaylist() },
                 containerColor = Color(0xFFB3B4B9),
                 contentColor = Color.White,
                 shape = CircleShape
             ) {
-                Icon(
-                    imageVector = Icons.Filled.Add,
-                    contentDescription = "Добавить плейлист",
-                    modifier = Modifier.size(28.dp)
-                )
+                Icon(imageVector = Icons.Filled.Add, contentDescription = "Добавить", modifier = Modifier.size(28.dp))
             }
         }
     ) { paddingValues ->
         Box(
             modifier = modifier
                 .fillMaxSize()
-                .background(Color.White)
+                .background(ThemeManager.AppBackgroundColor)  
                 .padding(paddingValues)
         ) {
             if (playlists.isEmpty()) {
@@ -163,11 +170,7 @@ fun PlaylistsScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "У вас пока нет плейлистов",
-                        color = Color.Gray,
-                        fontSize = 16.sp
-                    )
+                    Text("У вас пока нет плейлистов", color = Color.Gray, fontSize = 16.sp)
                 }
             } else {
                 LazyColumn(
@@ -175,11 +178,95 @@ fun PlaylistsScreen(
                     contentPadding = PaddingValues(vertical = 8.dp)
                 ) {
                     items(playlists.size) { index ->
-                        PlaylistListItem(playlist = playlists[index]) {
-                            navigateToPlaylist(playlists[index].id)
+                        PlaylistListItem(
+                            playlist = playlists[index],
+                            onClick = { navigateToPlaylist(playlists[index].id) },
+                            onLongClick = {
+                                selectedSourcePlaylist = playlists[index]
+                                showMergeBottomSheet = true
+                            }
+                        )
+                    }
+                }
+            }
+
+            if (showMergeBottomSheet && selectedSourcePlaylist != null) {
+                val sheetState = rememberModalBottomSheetState()
+                val otherPlaylists = playlists.filter { it.id != selectedSourcePlaylist?.id }
+
+                ModalBottomSheet(
+                    onDismissRequest = { showMergeBottomSheet = false },
+                    sheetState = sheetState,
+                    containerColor = ThemeManager.AppBackgroundColor  
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp)
+                    ) {
+                        Text(
+                            text = "Объединить с плейлистом",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(bottom = 16.dp),
+                            color = ThemeManager.AppTextColor  
+                        )
+
+                        if (otherPlaylists.isEmpty()) {
+                            Text("Нет других плейлистов.", color = Color.Gray, modifier = Modifier.padding(bottom = 16.dp))
+                        } else {
+                            LazyColumn(modifier = Modifier.fillMaxWidth()) {
+                                items(otherPlaylists.size) { idx ->
+                                    val targetPlaylist = otherPlaylists[idx]
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable {
+                                                targetPlaylistToMerge = targetPlaylist
+                                                showConfirmationDialog = true
+                                            }
+                                            .padding(vertical = 12.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(targetPlaylist.name, fontSize = 16.sp, color = ThemeManager.AppTextColor)  
+                                    }
+                                    HorizontalDivider(thickness = 0.5.dp, color = Color.LightGray)
+                                }
+                            }
                         }
                     }
                 }
+            }
+
+            if (showConfirmationDialog && selectedSourcePlaylist != null && targetPlaylistToMerge != null) {
+                AlertDialog(
+                    onDismissRequest = { showConfirmationDialog = false },
+                    title = { Text("Объединение плейлистов", fontWeight = FontWeight.Bold) },
+                    text = { Text("Объединить \"${selectedSourcePlaylist?.name}\" с \"${targetPlaylistToMerge?.name}\"?") },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                showConfirmationDialog = false
+                                showMergeBottomSheet = false
+                                val source = selectedSourcePlaylist
+                                val target = targetPlaylistToMerge
+                                if (source != null && target != null) {
+                                    playlistsViewModel.mergePlaylists(source, target) {
+                                        Toast.makeText(context, "${source.name} слит с ${target.name}", Toast.LENGTH_LONG).show()
+                                    }
+                                }
+                            }
+                        ) {
+                            Text("Объединить", color = Color(0xFF3772E7), fontWeight = FontWeight.Bold)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showConfirmationDialog = false }) {
+                            Text("Отмена", color = Color.Gray)
+                        }
+                    },
+                    containerColor = ThemeManager.AppBackgroundColor,  
+                    titleContentColor = ThemeManager.AppTextColor,  
+                    textContentColor = ThemeManager.AppTextColor  
+                )
             }
         }
     }

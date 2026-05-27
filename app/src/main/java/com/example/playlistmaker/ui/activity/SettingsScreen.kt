@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
@@ -26,8 +27,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import com.example.playlistmaker.R
+import com.example.playlistmaker.data.ThemeManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,16 +48,26 @@ fun SettingsScreen(onBackClick: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(id = R.string.settings), fontWeight = FontWeight.Medium) },
+                title = {
+                    Text(
+                        text = stringResource(id = R.string.settings),
+                        fontWeight = FontWeight.Medium,
+                        color = ThemeManager.AppTextColor
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Назад",
+                            tint = ThemeManager.AppTextColor
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White,
-                    titleContentColor = Color.Black,
-                    navigationIconContentColor = Color.Black
+                    containerColor = ThemeManager.AppBackgroundColor,
+                    titleContentColor = ThemeManager.AppTextColor,
+                    navigationIconContentColor = ThemeManager.AppTextColor
                 )
             )
         }
@@ -65,7 +75,7 @@ fun SettingsScreen(onBackClick: () -> Unit) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
+                .background(ThemeManager.AppBackgroundColor)
                 .padding(paddingValues)
                 .padding(top = 24.dp, start = 16.dp, end = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -112,8 +122,7 @@ private fun SettingsItem(
             text = text,
             fontSize = 16.sp,
             modifier = Modifier.weight(1f),
-            color = Color.Black
-
+            color = ThemeManager.AppTextColor
         )
         action()
     }
@@ -121,11 +130,11 @@ private fun SettingsItem(
 
 @Composable
 private fun SettingsSwitch() {
-    val isChecked = remember { mutableStateOf(false) }
     Switch(
-        modifier = Modifier.height(1.dp),
-        checked = isChecked.value,
-        onCheckedChange = { isChecked.value = it },
+        checked = ThemeManager.isDarkTheme,
+        onCheckedChange = { isChecked ->
+            ThemeManager.switchTheme(isChecked)
+        },
         colors = SwitchDefaults.colors(
             checkedThumbColor = Color.White,
             checkedTrackColor = Color(0xFF3772E7),

@@ -70,6 +70,19 @@ class PlaylistsViewModel(
         return tracksRepository.getTrackByNameAndArtist(track = track).firstOrNull()
     }
 
+    fun mergePlaylists(sourcePlaylist: Playlist, targetPlaylist: Playlist, onComplete: () -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            sourcePlaylist.tracks.forEach { track ->
+                tracksRepository.insertTrackToPlaylist(track, targetPlaylist.id)
+            }
+            playlistsRepository.deletePlaylistById(sourcePlaylist.id)
+
+            viewModelScope.launch(Dispatchers.Main) {
+                onComplete()
+            }
+        }
+    }
+
     companion object {
         fun getViewModelFactory(context: Context): ViewModelProvider.Factory =
             object : ViewModelProvider.Factory {

@@ -31,6 +31,7 @@ import androidx.core.content.ContextCompat
 import coil.compose.AsyncImage
 import com.example.playlistmaker.R
 import com.example.playlistmaker.PlaylistsViewModel
+import com.example.playlistmaker.data.ThemeManager  
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,7 +46,6 @@ fun CreatePlaylistScreen(
     val context = LocalContext.current
     val isButtonEnabled = name.isNotBlank()
 
-    // Лаунчер выбора изображения из галереи
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -54,7 +54,6 @@ fun CreatePlaylistScreen(
         }
     }
 
-    // Лаунчер для запроса runtime разрешения доступа к файлам (для API <= 32)
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
@@ -78,14 +77,13 @@ fun CreatePlaylistScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Назад",
-                            tint = Color.Black
+                            tint = ThemeManager.AppTextColor  
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White,
-                    titleContentColor = Color.Black,
-                    navigationIconContentColor = Color.Black
+                    containerColor = ThemeManager.AppBackgroundColor,  
+                    titleContentColor = ThemeManager.AppTextColor  
                 )
             )
         }
@@ -93,7 +91,7 @@ fun CreatePlaylistScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
+                .background(ThemeManager.AppBackgroundColor)  
                 .padding(padding)
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState()),
@@ -101,20 +99,17 @@ fun CreatePlaylistScreen(
         ) {
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Кликом на этот Box мы запускаем проверку разрешений и выбор картинки
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1f)
                     .padding(horizontal = 8.dp)
                     .clip(RoundedCornerShape(16.dp))
-                    .background(Color(0xFFE6E8EB))
+                    .background(ThemeManager.AppCardColor)  
                     .clickable {
-                        // Для Android 13+ разрешения на чтение галереи не требуются
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                             imagePickerLauncher.launch("image/*")
                         } else {
-                            // Для Android 12 и ниже запрашиваем READ_EXTERNAL_STORAGE
                             val permissionCheck = ContextCompat.checkSelfPermission(
                                 context,
                                 Manifest.permission.READ_EXTERNAL_STORAGE
@@ -129,18 +124,16 @@ fun CreatePlaylistScreen(
                 contentAlignment = Alignment.Center
             ) {
                 if (coverImageUri != null) {
-                    // Отображение выбранной обложки пользователя
                     AsyncImage(
                         model = Uri.parse(coverImageUri),
-                        contentDescription = "Обложка плейлиста",
+                        contentDescription = "Обложка",
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
                 } else {
-                    // Плейсхолдер
                     Icon(
                         painter = painterResource(id = R.drawable.ic_music),
-                        contentDescription = "Добавить обложку",
+                        contentDescription = "Добавить",
                         modifier = Modifier.size(64.dp),
                         tint = Color(0xFFAEAFB4)
                     )
@@ -161,8 +154,8 @@ fun CreatePlaylistScreen(
                     unfocusedBorderColor = Color(0xFFAEAFB4),
                     focusedLabelColor = Color(0xFF3772E7),
                     unfocusedLabelColor = Color(0xFFAEAFB4),
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black
+                    focusedTextColor = ThemeManager.AppTextColor,  
+                    unfocusedTextColor = ThemeManager.AppTextColor  
                 )
             )
 
@@ -179,8 +172,8 @@ fun CreatePlaylistScreen(
                     unfocusedBorderColor = Color(0xFFAEAFB4),
                     focusedLabelColor = Color(0xFF3772E7),
                     unfocusedLabelColor = Color(0xFFAEAFB4),
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black
+                    focusedTextColor = ThemeManager.AppTextColor,  
+                    unfocusedTextColor = ThemeManager.AppTextColor  
                 )
             )
 
@@ -194,10 +187,7 @@ fun CreatePlaylistScreen(
                         onBackClick()
                     }
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-                    .padding(bottom = 8.dp),
+                modifier = Modifier.fillMaxWidth().height(48.dp).padding(bottom = 8.dp),
                 enabled = isButtonEnabled,
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(
@@ -207,11 +197,7 @@ fun CreatePlaylistScreen(
                     disabledContentColor = Color.White
                 )
             ) {
-                Text(
-                    text = "Создать",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium
-                )
+                Text("Создать", fontSize = 16.sp, fontWeight = FontWeight.Medium)
             }
             Spacer(modifier = Modifier.height(16.dp))
         }

@@ -1,14 +1,17 @@
 package com.example.playlistmaker.ui.activity
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
@@ -27,6 +30,7 @@ import coil.compose.AsyncImage
 import com.example.playlistmaker.R
 import com.example.playlistmaker.SearchState
 import com.example.playlistmaker.SearchViewModel
+import com.example.playlistmaker.data.ThemeManager
 import com.example.playlistmaker.data.network.Track
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -45,13 +49,16 @@ fun SearchScreen(
                 title = { Text("Поиск", fontWeight = FontWeight.Medium) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Назад",
+                            tint = ThemeManager.AppTextColor
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White,
-                    titleContentColor = Color.Black,
-                    navigationIconContentColor = Color.Black
+                    containerColor = ThemeManager.AppBackgroundColor,
+                    titleContentColor = ThemeManager.AppTextColor
                 )
             )
         }
@@ -59,7 +66,7 @@ fun SearchScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
+                .background(ThemeManager.AppBackgroundColor)
                 .padding(paddingValues)
                 .padding(horizontal = 16.dp)
         ) {
@@ -88,20 +95,20 @@ fun SearchScreen(
                             searchText = ""
                             viewModel.clearSearch()
                         }) {
-                            Icon(Icons.Filled.Clear, contentDescription = "Очистить")
+                            Icon(Icons.Filled.Clear, contentDescription = "Очистить", tint = Color.Gray)
                         }
                     }
                 },
                 singleLine = true,
                 shape = RoundedCornerShape(8.dp),
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFFE6E8EB),
-                    unfocusedContainerColor = Color(0xFFE6E8EB),
+                    focusedContainerColor = ThemeManager.AppCardColor,
+                    unfocusedContainerColor = ThemeManager.AppCardColor,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black,
-                    cursorColor = Color.Black
+                    focusedTextColor = ThemeManager.AppTextColor,
+                    unfocusedTextColor = ThemeManager.AppTextColor,
+                    cursorColor = ThemeManager.AppTextColor
                 )
             )
 
@@ -110,20 +117,16 @@ fun SearchScreen(
             when (screenState) {
                 is SearchState.Initial -> {
                     Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .weight(1f),
+                        modifier = Modifier.fillMaxSize().weight(1f),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("Введите строку для поиска", color = Color.Black)
+                        Text("Введите строку для поиска", color = ThemeManager.AppTextColor)
                     }
                 }
 
                 is SearchState.Searching -> {
                     Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .weight(1f),
+                        modifier = Modifier.fillMaxSize().weight(1f),
                         contentAlignment = Alignment.Center
                     ) {
                         CircularProgressIndicator(color = Color(0xFF3772E7))
@@ -134,23 +137,18 @@ fun SearchScreen(
                     val tracks = (screenState as SearchState.Success).list
                     if (tracks.isEmpty()) {
                         Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .weight(1f),
+                            modifier = Modifier.fillMaxSize().weight(1f),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("Ничего не найдено", color = Color.Black)
+                            Text("Ничего не найдено", color = ThemeManager.AppTextColor)
                         }
                     } else {
-                        LazyColumn(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .weight(1f)
-                        ) {
+                        LazyColumn(modifier = Modifier.fillMaxSize().weight(1f)) {
                             items(tracks) { track ->
-                                TrackListItem(track = track) {
-                                    onTrackClick(track)
-                                }
+                                TrackListItem(
+                                    track = track,
+                                    onClick = { onTrackClick(track) }
+                                )
                                 HorizontalDivider(
                                     thickness = 0.5.dp,
                                     color = Color.LightGray
@@ -163,15 +161,13 @@ fun SearchScreen(
                 is SearchState.Fail -> {
                     val error = (screenState as SearchState.Fail).error
                     Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .weight(1f),
+                        modifier = Modifier.fillMaxSize().weight(1f),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
                         Image(
                             painter = painterResource(id = R.drawable.ic_music),
-                            contentDescription = "Ошибка подключения",
+                            contentDescription = "Ошибка",
                             modifier = Modifier.size(120.dp),
                             colorFilter = ColorFilter.tint(Color.LightGray)
                         )
@@ -179,7 +175,7 @@ fun SearchScreen(
                         Text(
                             text = "Проблемы со связью\n$error",
                             textAlign = TextAlign.Center,
-                            color = Color.Black
+                            color = ThemeManager.AppTextColor
                         )
                         Spacer(modifier = Modifier.height(24.dp))
                         Button(
@@ -199,12 +195,20 @@ fun SearchScreen(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun TrackListItem(track: Track, onClick: () -> Unit) {
+fun TrackListItem(
+    track: Track,
+    onClick: () -> Unit,
+    onLongClick: (() -> Unit)? = null
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick
+            )
             .padding(vertical = 8.dp, horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -216,7 +220,7 @@ fun TrackListItem(track: Track, onClick: () -> Unit) {
             modifier = Modifier
                 .size(48.dp)
                 .clip(RoundedCornerShape(4.dp))
-                .background(Color(0xFFE6E8EB)),
+                .background(ThemeManager.AppCardColor),
             contentScale = androidx.compose.ui.layout.ContentScale.Crop
         )
 
@@ -230,7 +234,7 @@ fun TrackListItem(track: Track, onClick: () -> Unit) {
                 text = track.trackName,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
-                color = Color.Black
+                color = ThemeManager.AppTextColor
             )
             Text(
                 text = track.artistName,
@@ -238,9 +242,12 @@ fun TrackListItem(track: Track, onClick: () -> Unit) {
                 color = Color.Gray
             )
         }
-        Text(
-            text = track.trackTime,
-            color = Color.Gray
+
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+            contentDescription = "Перейти",
+            tint = Color.LightGray,
+            modifier = Modifier.size(16.dp).padding(end = 4.dp)
         )
     }
 }

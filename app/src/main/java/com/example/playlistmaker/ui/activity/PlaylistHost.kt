@@ -43,7 +43,6 @@ fun PlaylistHost() {
         navController = navController,
         startDestination = Screen.Main.route
     ) {
-        // 1. Главный экран (MainScreen)
         composable(Screen.Main.route) {
             MainScreen(
                 onSearchClick = navigateToSearch,
@@ -53,7 +52,6 @@ fun PlaylistHost() {
             )
         }
 
-        // 2. Экран поиска (SearchScreen)
         composable(Screen.Search.route) {
             val searchViewModel: SearchViewModel = viewModel(
                 factory = SearchViewModel.getViewModelFactory()
@@ -63,21 +61,19 @@ fun PlaylistHost() {
                 onBackClick = navigateBack,
                 onTrackClick = { track ->
                     navController.navigate(
-                        Screen.TrackDetails.createRoute(track.trackName, track.artistName)
+                        Screen.TrackDetails.createRoute(track.trackName, track.artistName, track.trackTime, track.artworkUrl100)
                     )
                 },
                 viewModel = searchViewModel
             )
         }
 
-        // 3. Экран настроек (SettingsScreen)
         composable(Screen.Settings.route) {
             SettingsScreen(
                 onBackClick = navigateBack
             )
         }
 
-        // 4. Экран списка плейлистов (PlaylistsScreen)
         composable(Screen.Playlists.route) {
             PlaylistsScreen(
                 modifier = Modifier,
@@ -90,7 +86,6 @@ fun PlaylistHost() {
             )
         }
 
-        // 5. Экран создания нового плейлиста (CreatePlaylistScreen)
         composable(Screen.CreatePlaylist.route) {
             CreatePlaylistScreen(
                 onBackClick = navigateBack,
@@ -98,21 +93,18 @@ fun PlaylistHost() {
             )
         }
 
-        // 6. Экран избранного (FavoritesScreen)
         composable(Screen.Favorites.route) {
             FavoritesScreen(
                 onBackClick = navigateBack,
                 onTrackClick = { track ->
-                    // Переход на детальный экран трека при клике
                     navController.navigate(
-                        Screen.TrackDetails.createRoute(track.trackName, track.artistName)
+                        Screen.TrackDetails.createRoute(track.trackName, track.artistName, track.trackTime, track.artworkUrl100)
                     )
                 },
-                viewModel = playlistsViewModel // Передаем общую ViewModel плейлистов
+                viewModel = playlistsViewModel
             )
         }
 
-        // 7. Экран конкретного плейлиста (PlaylistScreen - детальный)
         composable(
             route = Screen.PlaylistDetails.route,
             arguments = listOf(
@@ -121,7 +113,6 @@ fun PlaylistHost() {
         ) { backStackEntry ->
             val playlistId = backStackEntry.arguments?.getLong("playlistId") ?: 0L
 
-
             val playlistViewModel: PlaylistViewModel = viewModel(
                 factory = PlaylistViewModel.getViewModelFactory(context, playlistId)
             )
@@ -129,31 +120,42 @@ fun PlaylistHost() {
             PlaylistScreen(
                 viewModel = playlistViewModel,
                 navigateToTrack = { track ->
+                    // ИСПРАВЛЕНО: передаем время и обложку из треков внутри плейлиста
                     navController.navigate(
-                        Screen.TrackDetails.createRoute(track.trackName, track.artistName)
+                        Screen.TrackDetails.createRoute(track.trackName, track.artistName, track.trackTime, track.artworkUrl100)
                     )
                 },
                 navigateBack = navigateBack
             )
         }
 
-        // 8. Экран деталей трека (TrackDetailsScreen)
         composable(
             route = Screen.TrackDetails.route,
             arguments = listOf(
                 navArgument("trackName") { type = NavType.StringType },
-                navArgument("artistName") { type = NavType.StringType }
+                navArgument("artistName") { type = NavType.StringType },
+                navArgument("trackTime") { type = NavType.StringType },
+                navArgument("artworkUrl100") { type = NavType.StringType }
             )
         ) { backStackEntry ->
             val encodedTrackName = backStackEntry.arguments?.getString("trackName") ?: ""
             val encodedArtistName = backStackEntry.arguments?.getString("artistName") ?: ""
+            val encodedTrackTime = backStackEntry.arguments?.getString("trackTime") ?: ""
+            val encodedArtworkUrl = backStackEntry.arguments?.getString("artworkUrl100") ?: ""
 
             val trackName = URLDecoder.decode(encodedTrackName, StandardCharsets.UTF_8.toString())
             val artistName = URLDecoder.decode(encodedArtistName, StandardCharsets.UTF_8.toString())
+            val trackTime = URLDecoder.decode(encodedTrackTime, StandardCharsets.UTF_8.toString())
+            var artworkUrl = URLDecoder.decode(encodedArtworkUrl, StandardCharsets.UTF_8.toString())
+
+            if (artworkUrl == "empty") artworkUrl = ""
+
 
             TrackDetailsScreen(
                 trackName = trackName,
                 artistName = artistName,
+                trackTime = trackTime,
+                artworkUrl = artworkUrl,
                 onBackClick = navigateBack,
                 viewModel = playlistsViewModel
             )

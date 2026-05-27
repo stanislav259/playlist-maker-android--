@@ -1,8 +1,8 @@
 package com.example.playlistmaker.ui.activity
 
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -26,9 +27,31 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.playlistmaker.R
 import com.example.playlistmaker.PlaylistViewModel
+import com.example.playlistmaker.data.ThemeManager
 import com.example.playlistmaker.data.network.Track
-import android.net.Uri
-import androidx.compose.ui.layout.ContentScale
+
+private fun getTrackCountString(count: Int): String {
+    val lastDigit = count % 10
+    val lastTwoDigits = count % 100
+    return when {
+        lastTwoDigits in 11..19 -> "$count треков"
+        lastDigit == 1 -> "$count трек"
+        lastDigit in 2..4 -> "$count трека"
+        else -> "$count треков"
+    }
+}
+
+private fun calculateTotalMinutes(tracks: List<Track>): Int {
+    val totalSeconds = tracks.sumOf { track ->
+        val parts = track.trackTime.split(":")
+        if (parts.size == 2) {
+            val minutes = parts[0].toIntOrNull() ?: 0
+            val seconds = parts[1].toIntOrNull() ?: 0
+            minutes * 60 + seconds
+        } else 0
+    }
+    return totalSeconds / 60
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,11 +72,14 @@ fun PlaylistScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Назад",
-                            tint = Color.Black
+                            tint = ThemeManager.AppTextColor
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = ThemeManager.AppBackgroundColor,
+                    titleContentColor = ThemeManager.AppTextColor
+                )
             )
         }
     ) { padding ->
@@ -62,7 +88,7 @@ fun PlaylistScreen(
             Column(
                 modifier = modifier
                     .fillMaxSize()
-                    .background(Color.White)
+                    .background(ThemeManager.AppBackgroundColor)
                     .padding(padding)
                     .padding(horizontal = 16.dp)
             ) {
@@ -73,11 +99,10 @@ fun PlaylistScreen(
                         .fillMaxWidth()
                         .aspectRatio(1.5f)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(Color(0xFFE6E8EB)),
+                        .background(ThemeManager.AppCardColor),
                     contentAlignment = Alignment.Center
                 ) {
                     if (playlist.coverImageUri != null) {
-                        // ИСПРАВЛЕНО: отображаем крупную обложку пользователя
                         AsyncImage(
                             model = Uri.parse(playlist.coverImageUri),
                             contentDescription = "Обложка плейлиста",
@@ -85,7 +110,6 @@ fun PlaylistScreen(
                             contentScale = ContentScale.Crop
                         )
                     } else {
-                        // Плейсхолдер
                         Image(
                             painter = painterResource(id = R.drawable.ic_music),
                             contentDescription = "Обложка плейлиста",
@@ -101,14 +125,23 @@ fun PlaylistScreen(
                     text = playlist.name,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    color = ThemeManager.AppTextColor
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+                val totalMinutes = calculateTotalMinutes(playlist.tracks)
+                val tracksCountString = getTrackCountString(playlist.tracks.size)
+                Text(
+                    text = "$totalMinutes минут • $tracksCountString",
+                    fontSize = 14.sp,
+                    color = Color.Gray
                 )
 
                 if (playlist.description.isNotBlank()) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = playlist.description,
-                        fontSize = 16.sp,
+                        fontSize = 14.sp,
                         color = Color.Gray
                     )
                 }
@@ -121,7 +154,7 @@ fun PlaylistScreen(
                     text = "Треки",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black,
+                    color = ThemeManager.AppTextColor,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
@@ -139,9 +172,10 @@ fun PlaylistScreen(
                 } else {
                     LazyColumn(modifier = Modifier.fillMaxSize().weight(1f)) {
                         items(playlist.tracks) { track ->
-                            TrackListItem(track = track) {
-                                navigateToTrack(track)
-                            }
+                            TrackListItem(
+                                track = track,
+                                onClick = { navigateToTrack(track) }
+                            )
                             HorizontalDivider(thickness = 0.5.dp, color = Color.LightGray)
                         }
                     }

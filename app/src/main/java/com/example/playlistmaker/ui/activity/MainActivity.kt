@@ -36,14 +36,16 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.playlistmaker.data.ThemeManager
 import com.example.playlistmaker.ui.theme.PlaylistMakerTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-
         super.onCreate(savedInstanceState)
+        ThemeManager.init(this)
+
         setContent {
-            PlaylistMakerTheme {
+            PlaylistMakerTheme(darkTheme = ThemeManager.isDarkTheme) {
                 PlaylistHost()
             }
         }
@@ -69,7 +71,7 @@ fun MainScreen(
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF3772E7), // Синий цвет
+                    containerColor = Color(0xFF3772E7),
                     titleContentColor = Color.White
                 )
             )
@@ -78,14 +80,14 @@ fun MainScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF3772E7)) // Синий фон под скруглением
+                .background(Color(0xFF3772E7))
                 .padding(paddingValues)
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
-                        color = Color.White,
+                        color = ThemeManager.AppBackgroundColor,
                         shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
                     )
                     .padding(top = 24.dp, start = 16.dp, end = 16.dp),
@@ -114,14 +116,14 @@ fun MenuItem(text: String, icon: ImageVector, onClick: () -> Unit) {
         Icon(
             imageVector = icon,
             contentDescription = text,
-            tint = Color.Black
+            tint = ThemeManager.AppTextColor
         )
         Spacer(modifier = Modifier.width(12.dp))
         Text(
             text = text,
             fontSize = 18.sp,
             fontWeight = FontWeight.Normal,
-            color = Color.Black,
+            color = ThemeManager.AppTextColor,
             modifier = Modifier.weight(1f)
         )
         Icon(
