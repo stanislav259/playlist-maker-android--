@@ -1,5 +1,6 @@
 package com.example.playlistmaker
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -15,19 +16,20 @@ class SearchViewModel(
     private val tracksRepository: TracksRepository
 ) : ViewModel() {
     private val _searchScreenState = MutableStateFlow<SearchState>(SearchState.Initial)
-    val searchScreenState  = _searchScreenState.asStateFlow()
+    val searchScreenState = _searchScreenState.asStateFlow()
 
-    fun search(whatSearch: String){
+    fun search(whatSearch: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 _searchScreenState.update { SearchState.Searching }
                 val list = tracksRepository.searchTracks(expression = whatSearch)
                 _searchScreenState.update { SearchState.Success(list = list) }
-            } catch (e: IOException){
+            } catch (e: IOException) {
                 _searchScreenState.update { SearchState.Fail(e.message.toString()) }
             }
         }
     }
+
     fun clearSearch() {
         _searchScreenState.update { SearchState.Initial }
     }

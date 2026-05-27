@@ -1,41 +1,71 @@
 package com.example.playlistmaker.data
 
+import com.example.playlistmaker.data.db.AppDatabase
+import com.example.playlistmaker.data.db.TrackEntity
 import com.example.playlistmaker.data.network.Track
 import com.example.playlistmaker.domain.TracksRepository
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 class DbTracksRepositoryImpl(
-    private val scope: CoroutineScope
+    private val database: AppDatabase
 ) : TracksRepository {
 
-    private val database = DatabaseMockProvider.getDatabase(scope)
+    private val trackDao = database.trackDao()
 
     override suspend fun searchTracks(expression: String): List<Track> {
-        return database.searchTracks(expression)
+        return trackDao.searchTracks(expression).map { mapToTrack(it) }
     }
 
     override fun getTrackByNameAndArtist(track: Track): Flow<Track?> {
-        return database.getTrackByNameAndArtist(track)
+        return trackDao.getTrackByNameAndArtist(track.trackName, track.artistName).map {
+            it?.let { mapToTrack(it) }
+        }
     }
 
     override suspend fun insertTrackToPlaylist(track: Track, playlistId: Long) {
-        database.insertTrack(track.copy(playlistId = playlistId))
+        trackDao.insertTrack(mapToEntity(track).copy(playlistId = playlistId))
     }
 
     override suspend fun deleteTrackFromPlaylist(track: Track) {
-        database.insertTrack(track.copy(playlistId = 0))
+        trackDao.insertTrack(mapToEntity(track).copy(playlistId = 0))
     }
 
     override suspend fun updateTrackFavoriteStatus(track: Track, isFavorite: Boolean) {
-        database.insertTrack(track.copy(favorite = isFavorite))
+        trackDao.insertTrack(mapToEntity(track).copy(favorite = isFavorite))
     }
 
     override suspend fun deleteTracksByPlaylistId(playlistId: Long) {
-        database.deleteTracksByPlaylistId(playlistId)
+        trackDao.deleteTracksByPlaylistId(playlistId)
     }
 
     override fun getFavoriteTracks(): Flow<List<Track>> {
-        return database.getFavoriteTracks()
+        return trackDao.getFavoriteTracks().map { list ->
+            list.map { mapToTrack(it) }
+        }
+    }
+
+    private fun mapToTrack(entity: TrackEntity): Track {
+        return Track(
+            id = entity.id,
+            trackName = entity.trackName,
+            artistName = entity.artistName,
+            trackTime = entity.trackTime,
+            artworkUrl100 = entity.artworkUrl100,
+            playlistId = entity.playlistId,
+            favorite = entity.favorite
+        )
+    }
+
+    private fun mapToEntity(track: Track): TrackEntity {
+        return TrackEntity(
+            id = track.id,
+            trackName = track.trackName,
+            artistName = track.artistName,
+            trackTime = track.trackTime,
+            artworkUrl100 = track.artworkUrl100,
+            playlistId = track.playlistId,
+            favorite = track.favorite
+        )
     }
 }
