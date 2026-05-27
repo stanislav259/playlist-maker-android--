@@ -28,8 +28,6 @@ fun CreatePlaylistScreen(
 ) {
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-
-    // Флаг для блокировки кнопки, если поле "Название" пустое
     val isButtonEnabled = name.isNotBlank()
 
     Scaffold(
@@ -65,23 +63,22 @@ fun CreatePlaylistScreen(
                 .background(Color.White)
                 .padding(padding)
                 .padding(horizontal = 16.dp)
-                .verticalScroll(rememberScrollState()), // Позволяет прокручивать экран при открытии клавиатуры
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Плейсхолдер для обложки плейлиста (большой серый квадрат со скругленными углами)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .aspectRatio(1f) // Строго квадратная форма
+                    .aspectRatio(1f)
                     .padding(horizontal = 8.dp)
                     .clip(RoundedCornerShape(16.dp))
                     .background(Color(0xFFE6E8EB)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_music), // Используйте ваш ресурс для добавления фото
+                    painter = painterResource(id = R.drawable.ic_music),
                     contentDescription = "Добавить обложку",
                     modifier = Modifier.size(64.dp),
                     tint = Color(0xFFAEAFB4)
@@ -90,7 +87,6 @@ fun CreatePlaylistScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Поле ввода "Название*"
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
@@ -99,10 +95,10 @@ fun CreatePlaylistScreen(
                 singleLine = true,
                 shape = RoundedCornerShape(8.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFF3772E7),     // Синяя рамка при фокусе
-                    unfocusedBorderColor = Color(0xFFAEAFB4),   // Серая рамка без фокуса
-                    focusedLabelColor = Color(0xFF3772E7),       // Синий лейбл при фокусе
-                    unfocusedLabelColor = Color(0xFFAEAFB4),     // Серый лейбл без фокуса
+                    focusedBorderColor = Color(0xFF3772E7),
+                    unfocusedBorderColor = Color(0xFFAEAFB4),
+                    focusedLabelColor = Color(0xFF3772E7),
+                    unfocusedLabelColor = Color(0xFFAEAFB4),
                     focusedTextColor = Color.Black,
                     unfocusedTextColor = Color.Black
                 )
@@ -110,7 +106,6 @@ fun CreatePlaylistScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Поле ввода "Описание"
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
@@ -127,11 +122,9 @@ fun CreatePlaylistScreen(
                 )
             )
 
-            // Динамический отступ, выталкивающий кнопку вниз экрана
             Spacer(modifier = Modifier.weight(1f))
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Кнопка "Создать"
             Button(
                 onClick = {
                     if (isButtonEnabled) {
@@ -146,10 +139,10 @@ fun CreatePlaylistScreen(
                 enabled = isButtonEnabled,
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF3772E7),         // Синий цвет активной кнопки
-                    disabledContainerColor = Color(0xFFB3B4B9),  // Серый цвет неактивной кнопки
-                    contentColor = Color.White,                 // Белый цвет текста активной кнопки
-                    disabledContentColor = Color.White          // Белый цвет текста неактивной кнопки
+                    containerColor = Color(0xFF3772E7),
+                    disabledContainerColor = Color(0xFFB3B4B9),
+                    contentColor = Color.White,
+                    disabledContentColor = Color.White
                 )
             ) {
                 Text(

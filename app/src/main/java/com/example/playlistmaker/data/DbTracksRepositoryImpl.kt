@@ -9,7 +9,6 @@ class DbTracksRepositoryImpl(
     private val scope: CoroutineScope
 ) : TracksRepository {
 
-    // Получаем общий синглтон базы данных через провайдер
     private val database = DatabaseMockProvider.getDatabase(scope)
 
     override suspend fun searchTracks(expression: String): List<Track> {

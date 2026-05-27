@@ -1,6 +1,7 @@
 package com.example.playlistmaker.ui.activity
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -10,14 +11,20 @@ import androidx.navigation.navArgument
 import com.example.playlistmaker.Screen
 import com.example.playlistmaker.SearchViewModel
 import com.example.playlistmaker.PlaylistsViewModel
+import com.example.playlistmaker.PlaylistViewModel
+import com.example.playlistmaker.ui.activity.PlaylistsScreen
+import com.example.playlistmaker.ui.activity.PlaylistScreen
+import com.example.playlistmaker.ui.activity.CreatePlaylistScreen
+import com.example.playlistmaker.ui.activity.FavoritesScreen
+import com.example.playlistmaker.ui.activity.SettingsScreen
+import com.example.playlistmaker.ui.activity.SearchScreen
+import com.example.playlistmaker.ui.activity.MainScreen
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 
 @Composable
 fun PlaylistHost() {
     val navController = rememberNavController()
-
-    // Создаем единую ViewModel для работы с плейлистами
     val playlistsViewModel: PlaylistsViewModel = viewModel()
 
     val navigateBack: () -> Unit = { navController.popBackStack() }
@@ -57,15 +64,19 @@ fun PlaylistHost() {
         }
 
         composable(Screen.Settings.route) {
-            SettingsScreen(onBackClick = navigateBack)
+            SettingsScreen(
+                onBackClick = navigateBack
+            )
         }
 
         composable(Screen.Playlists.route) {
             PlaylistsScreen(
-                modifier = androidx.compose.ui.Modifier,
+                modifier = Modifier,
                 playlistsViewModel = playlistsViewModel,
                 addNewPlaylist = navigateToCreatePlaylist,
-                navigateToPlaylist = { /* Переход на детальный экран плейлиста */ },
+                navigateToPlaylist = { playlistId ->
+                    navController.navigate(Screen.PlaylistDetails.createRoute(playlistId))
+                },
                 navigateBack = navigateBack
             )
         }
@@ -78,7 +89,32 @@ fun PlaylistHost() {
         }
 
         composable(Screen.Favorites.route) {
-            FavoritesScreen(onBackClick = navigateBack)
+            FavoritesScreen(
+                onBackClick = navigateBack
+            )
+        }
+
+        composable(
+            route = Screen.PlaylistDetails.route,
+            arguments = listOf(
+                navArgument("playlistId") { type = NavType.LongType }
+            )
+        ) { backStackEntry ->
+            val playlistId = backStackEntry.arguments?.getLong("playlistId") ?: 0L
+
+            val playlistViewModel: PlaylistViewModel = viewModel(
+                factory = PlaylistViewModel.getViewModelFactory(playlistId)
+            )
+
+            PlaylistScreen(
+                viewModel = playlistViewModel,
+                navigateToTrack = { track ->
+                    navController.navigate(
+                        Screen.TrackDetails.createRoute(track.trackName, track.artistName)
+                    )
+                },
+                navigateBack = navigateBack
+            )
         }
 
         composable(

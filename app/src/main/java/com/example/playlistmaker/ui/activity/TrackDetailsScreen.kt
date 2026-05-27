@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.playlistmaker.R
 import com.example.playlistmaker.PlaylistsViewModel
+import com.example.playlistmaker.Playlist
 import com.example.playlistmaker.data.network.Track
 import kotlinx.coroutines.launch
 
@@ -52,7 +53,11 @@ fun TrackDetailsScreen(
                 title = { Text("О треке", fontWeight = FontWeight.Medium) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Назад",
+                            tint = Color.Black
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
@@ -99,7 +104,6 @@ fun TrackDetailsScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        // Кнопка добавления в Избранное
                         IconButton(onClick = {
                             coroutineScope.launch {
                                 val nextFavoriteState = !track.favorite

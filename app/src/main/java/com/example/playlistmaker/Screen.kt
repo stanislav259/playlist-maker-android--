@@ -18,4 +18,7 @@ sealed class Screen(val route: String) {
             return "track_details_screen/$encodedTrack/$encodedArtist"
         }
     }
+    object PlaylistDetails : Screen("playlist_details_screen/{playlistId}") {
+        fun createRoute(playlistId: Long) = "playlist_details_screen/$playlistId"
+    }
 }
